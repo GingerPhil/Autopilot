@@ -1,5 +1,3 @@
-
-
 //Autopilot
 //MPU-9150
 //15-11-2016
@@ -28,12 +26,16 @@ const float pressureSeaLevel = 29.92126; //air pressure at sea level - inches me
 
 //****************************************PINS****************************************
 
+//switch pins
+const char rcSwitchPin = 0;
+const char modePin = 0;
+
 //servo pins
 const char servoSwitchPin = 0;
 const char elevatorPin = 2;
 const char leftAlrnPin = 0;
 const char rightAlrnPin = 0;
-const char rudderPin = 0;
+const char rudderPin = 3;
 
 //indicator pins
 const char LEDstatusPin = 0;
@@ -258,7 +260,7 @@ void gyroAngles()
   pastMicros = currentMicros; //time since program started for last loop
   currentMicros = micros(); //find time since program started
 
-  //wrap micros()
+  //wrap micros
   if (currentMicros > pastMicros) //micros overflows after ~70 minutes
     dt = (float)(currentMicros - pastMicros)/1000000;
   else
@@ -282,7 +284,6 @@ void gyroAngles()
 
 void complimentaryFilter()
 {
-
   //calcuate current angle - integrate gyro
   currentPitchAngle += gyroRateX * dt;
   currentRollAngle += gyroRateY * dt;
@@ -338,7 +339,7 @@ int calcAirData()
   //calculate pressure altitude
   //calculate air speed
   //check stall speed
-  //return -1 if stalling
+  //return -1 if error/bad
 }
 
 
@@ -355,7 +356,7 @@ int UltrasonicAltitude()
 }
 
 /*
-//get GPS string
+//get NMEA GPS strings and parse - tinyGPS
 int getGPS()
 {
   while (Serial1.available()) //while there is data on port
@@ -455,25 +456,6 @@ void computePID()
   lastPID = currentTime;
 }
 
-//NOT REQUIRED
-//hold current heading and altitude
-void autoPilotHOLD()
-{
-  
-}
-
-//circle current GPS position
-void autoPilotCIRCLE()
-{
-  
-}
-
-//return to home, hold and circle
-void autoPilotRTH()
-{
-  
-}
-
 
 
 //****************************************MAIN LOOP****************************************
@@ -497,25 +479,23 @@ void loop()
   //RSSI
 
   //get mode selected
-  //mode = digitalRead(); read signal from RC reciever
+  //mode = digitalRead(modePin); read signal from RC reciever
 
   //action on mode
   mode = 2;
   switch (mode)
   {
     case 1: //RC mode
-      //digitalWrite() //switch signals to RC
+      //digitalWrite(rcSwitchPin) //switch signals to RC
       break;
       
-    case 2: //HOLD mode  
+    case 2: //HOLD mode  r
       //pitch = 0, roll = k*heading error, throttle manual
-      computePID();
-      elevatorServo.write(90 + elevatorOutput);
-      
       //calc heading error
       //set setpoints
-      //compute PID
-      //set servos
+      computePID();
+      elevatorServo.write(90 + elevatorOutput);
+      rudderServo.write(90 + rudderOutput);
       //GPS and magnetic heading kept constant
       break;
       
@@ -544,7 +524,6 @@ void loop()
 
 
 
-  
   //FOR TESTING
   //Serial.print("Loop Time: ");
   //Serial.println(loopTime);
